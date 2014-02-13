@@ -1,4 +1,5 @@
-rpm
-===
+# rpm
 
-Go library for working with data files related to the RPM Package Manager
+Go library for working with files related to the
+[RPM Package Manager](http://rpm.org).
+
