@@ -1,7 +1,6 @@
 package spec
 
 import (
-	"container/set"
 	"errors"
 	"fmt"
 	"io"
@@ -101,7 +100,8 @@ func (s *SpecFile) BuildRequires() []string {
 		return nil
 	}
 
-	buildreqs := set.New()
+	buildreqs := make([]string, 0)
+	brs := make(map[string]struct{})
 	for _, i := range breqs {
 		b, err := s.macroSub([]byte(i), s.macros)
 		if err != nil {
@@ -109,11 +109,15 @@ func (s *SpecFile) BuildRequires() []string {
 		}
 
 		for _, i := range strings.Split(string(b), ",") {
-			_ = buildreqs.Add(strings.Trim(i, " "))
+			i = strings.Trim(i, " ")
+			if _, ok := brs[i]; !ok {
+				brs[i] = struct{}{}
+				buildreqs = append(buildreqs, i)
+			}
 		}
 	}
 
-	return buildreqs.Members()
+	return buildreqs
 }
 
 func (s *SpecFile) Requires() []string {
@@ -122,7 +126,8 @@ func (s *SpecFile) Requires() []string {
 		return nil
 	}
 
-	requires := set.New()
+	requires := make([]string, 0)
+	rqs := make(map[string]struct{})
 	for _, r := range reqs {
 		b, err := s.macroSub([]byte(r), s.macros)
 		if err != nil {
@@ -136,11 +141,15 @@ func (s *SpecFile) Requires() []string {
 		// In the even there are no comma-separated requirements, this clause
 		// won't "damage" anything.
 		for _, i := range strings.Split(string(b), ",") {
-			_ = requires.Add(strings.Trim(i, " "))
+			i = strings.Trim(i, " ")
+			if _, ok := rqs[i]; !ok {
+				requires = append(requires, strings.Trim(i, " "))
+				rqs[i] = struct{}{}
+			}
 		}
 	}
 
-	return requires.Members()
+	return requires
 }
 
 func (s *SpecFile) Patches() map[string]string {
